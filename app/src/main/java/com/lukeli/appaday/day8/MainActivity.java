@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -110,7 +111,8 @@ public class MainActivity extends ActionBarActivity {
          ((TextView) findViewById(R.id.curCard)).setText(selected_words.size() > 0 ?
                  "Current Card: " + String.valueOf(curIndex+1) + "/" + String.valueOf(selected_words.size()) :
                 "No cards generated");
-        findViewById(R.id.next_button).setEnabled(selected_words.size() > 0 && curIndex != selected_words.size() - 1);
+        findViewById(R.id.next_button).setEnabled(selected_words.size() > 0 );
+        ((TextView) findViewById(R.id.next_button)).setText(curIndex == selected_words.size() - 1 ? "Start Alarm for 5 seconds" : "Next");
         findViewById(R.id.last_button).setEnabled(selected_words.size() > 0 && curIndex != 0);
     }
 
@@ -354,9 +356,15 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void nextCard(View view) {
-        curIndex += 1;
-        showingKorean = startKorean;
-        updateText();
+        if(curIndex == selected_words.size() - 1){
+            MyCount counter = new MyCount(5000, 1000);
+            counter.start();
+            findViewById(R.id.next_button).setEnabled(false);
+        }else {
+            curIndex += 1;
+            showingKorean = startKorean;
+            updateText();
+        }
     }
 
     public void previousCard(View view) {
@@ -384,5 +392,27 @@ public class MainActivity extends ActionBarActivity {
         curIndex = 0;
         showingKorean = startKorean;
         updateText();
+    }
+    public void resetWords(){
+        Collections.shuffle(selected_words);
+        curIndex = 0;
+        showingKorean = startKorean;
+        updateText();
+    }
+    public class MyCount extends CountDownTimer {
+
+        public MyCount(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onFinish() {
+            resetWords();
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            text.setText("Left: " + ((millisUntilFinished / 1000) + 1));
+        }
     }
 }
