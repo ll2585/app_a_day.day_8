@@ -111,6 +111,7 @@ public class MainActivity extends ActionBarActivity {
                  "Current Card: " + String.valueOf(curIndex+1) + "/" + String.valueOf(selected_words.size()) :
                 "No cards generated");
         findViewById(R.id.next_button).setEnabled(selected_words.size() > 0 && curIndex != selected_words.size() - 1);
+        findViewById(R.id.last_button).setEnabled(selected_words.size() > 0 && curIndex != 0);
     }
 
     @Override
@@ -141,6 +142,7 @@ public class MainActivity extends ActionBarActivity {
         Set<String> wordSet= new HashSet<String>();
         for (int i = 0; i < words.size(); i++) {
             wordSet.add(words.get(i).getJSONObject().toString());
+            Log.d("WORDSET", words.get(i).getJSONObject().toString());
         }
 
         sPEditor.putStringSet("DOWNLOADED_WORDS", wordSet);
@@ -222,7 +224,7 @@ public class MainActivity extends ActionBarActivity {
             try {
                 JSONObject jsonObject = new JSONObject(s);
                 Word w = Word.parseFromJSON(jsonObject);
-
+                Log.d("WORDSETAR", w.toString());
                 items.add(w);
 
             } catch (JSONException e) {
@@ -269,6 +271,7 @@ public class MainActivity extends ActionBarActivity {
     };
 
     public void parseFileAndDisplay(){
+        words = new ArrayList<Word>();
 
         ArrayList<String> koreanWords;
         ArrayList<String> definitions;
@@ -282,6 +285,7 @@ public class MainActivity extends ActionBarActivity {
             Log.d("WORDS", korean + " - " + definition);
             Word w = new Word(korean, definition);
             words.add(w);
+            Log.d("NEWWORD" , w.toString());
         }
 
         TextView lastDownloadedTextView = (TextView) findViewById(R.id.last_downloaded_text_view);
@@ -355,7 +359,17 @@ public class MainActivity extends ActionBarActivity {
         updateText();
     }
 
+    public void previousCard(View view) {
+        curIndex -= 1;
+        showingKorean = startKorean;
+        updateText();
+    }
+
     public void generateWords(View view) {
+        for (int i = 0; i < words.size(); i++) {
+            // be sure to use Vector.remove() or you may get the same item twice
+            Log.d("BEFOREGEN" , words.get(i).toString());
+        }
         generateWordsForFlashcards();
     }
 
@@ -365,6 +379,7 @@ public class MainActivity extends ActionBarActivity {
         for (int i = 0; i < wordsChosen; i++) {
             // be sure to use Vector.remove() or you may get the same item twice
             selected_words.add(words.get(i));
+            Log.d("NEWWORDGEN" , words.get(i).toString());
         }
         curIndex = 0;
         showingKorean = startKorean;
