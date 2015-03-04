@@ -1,5 +1,7 @@
 package com.lukeli.appaday.day8;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,6 +50,7 @@ public class MainActivity extends ActionBarActivity {
     String lastDownloadedString;
     private static final int SETTINGS_INFO = 1;
     boolean startKorean = true;
+    long alarmTime = 5000;
 
 
 
@@ -74,6 +78,8 @@ public class MainActivity extends ActionBarActivity {
             startKorean = savedInstanceState.getBoolean("START_KOREAN");
             wordsChosen = savedInstanceState.getInt("WORDS_TO_GENERATE");
 
+            alarmTime = savedInstanceState.getLong("ALARM_TIME");
+
         }else {
             words = new ArrayList<Word>();
             selected_words = new ArrayList<Word>();
@@ -94,6 +100,8 @@ public class MainActivity extends ActionBarActivity {
 
             wordsChosen = getPreferences(Context.MODE_PRIVATE).getInt("WORDS_TO_GENERATE", 7);
             startKorean = getPreferences(Context.MODE_PRIVATE).getBoolean("START_KOREAN", true);
+
+            alarmTime = getPreferences(Context.MODE_PRIVATE).getLong("ALARM_TIME", 5000);
         }
 
         ((TextView) findViewById(R.id.last_downloaded_text_view)).setText(lastDownloadedString);
@@ -112,7 +120,7 @@ public class MainActivity extends ActionBarActivity {
                  "Current Card: " + String.valueOf(curIndex+1) + "/" + String.valueOf(selected_words.size()) :
                 "No cards generated");
         findViewById(R.id.next_button).setEnabled(selected_words.size() > 0 );
-        ((TextView) findViewById(R.id.next_button)).setText(curIndex == selected_words.size() - 1 ? "Start Alarm for 5 seconds" : "Next");
+        ((TextView) findViewById(R.id.next_button)).setText(curIndex == selected_words.size() - 1 ? "Start Alarm" : "Next");
         findViewById(R.id.last_button).setEnabled(selected_words.size() > 0 && curIndex != 0);
     }
 
@@ -127,6 +135,8 @@ public class MainActivity extends ActionBarActivity {
 
         outState.putInt("WORDS_TO_GENERATE", wordsChosen);
         outState.putBoolean("START_KOREAN", startKorean);
+
+        outState.putLong("ALARM_TIME", alarmTime);
 
         super.onSaveInstanceState(outState);
     }
@@ -162,6 +172,7 @@ public class MainActivity extends ActionBarActivity {
 
         sPEditor.putInt("WORDS_TO_GENERATE", wordsChosen);
         sPEditor.putBoolean("START_KOREAN", startKorean);
+        sPEditor.putLong("ALARM_TIME", alarmTime);
         // Save the shared preferences
         sPEditor.commit();
 
@@ -216,7 +227,8 @@ public class MainActivity extends ActionBarActivity {
 
         startKorean = sharedPreferences.getBoolean("start_korean", true);
         wordsChosen = Integer.parseInt(sharedPreferences.getString("words_generated", "7"));
-
+        alarmTime = Long.parseLong(sharedPreferences.getString("alarm_time", "5"))*1000;
+        Log.d("ALARM", String.valueOf(alarmTime));
     }
 
     private ArrayList<Word> arrayListFromSharedPreferences(Set<String> set) {
@@ -357,14 +369,25 @@ public class MainActivity extends ActionBarActivity {
 
     public void nextCard(View view) {
         if(curIndex == selected_words.size() - 1){
-            MyCount counter = new MyCount(5000, 1000);
+            MyCount counter = new MyCount(alarmTime, 500);
             counter.start();
+            startAlarm();
             findViewById(R.id.next_button).setEnabled(false);
         }else {
             curIndex += 1;
             showingKorean = startKorean;
             updateText();
         }
+    }
+
+    private void startAlarm() {
+        Intent alertIntent = new Intent(this, AlertReceiver.class);
+        Long alertTime = new GregorianCalendar().getTimeInMillis()+alarmTime;
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, alertTime,
+                PendingIntent.getBroadcast(this, 1, alertIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT));
+
     }
 
     public void previousCard(View view) {
@@ -412,7 +435,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onTick(long millisUntilFinished) {
-            text.setText("Left: " + ((millisUntilFinished / 1000) + 1));
+            text.setText("Left: " + String.valueOf(Math.round(millisUntilFinished * 0.001f)));
         }
     }
 }

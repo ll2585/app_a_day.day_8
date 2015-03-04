@@ -2,6 +2,7 @@ package com.lukeli.appaday.day8;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.util.Log;
 import android.view.View;
 
 public class SettingsActivity extends PreferenceActivity {
@@ -17,6 +18,7 @@ public class SettingsActivity extends PreferenceActivity {
     }
 
     public void finishActivity(View view) {
+        Log.d("SETTINGS", "FINSHED??");
         finish();
     }
 }

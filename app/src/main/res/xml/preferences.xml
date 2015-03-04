@@ -28,4 +28,11 @@
         android:inputType="number"
         android:defaultValue="7" />
 
+    <EditTextPreference
+        android:key="alarm_time"
+        android:title="Time to Reset"
+        android:summary="Seconds until alert"
+        android:inputType="number"
+        android:defaultValue="5" />
+
 </PreferenceScreen>
